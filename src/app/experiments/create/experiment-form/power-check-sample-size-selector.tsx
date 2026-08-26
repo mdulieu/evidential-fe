@@ -264,6 +264,18 @@ export function PowerCheckSampleSizeSelector({
     handleInputChange(estimateParticipantNFromClusters(clusterN, avgClusterSize), clusterN);
   };
 
+  /**
+   * Clicking into the custom inputs does not toggle the surrounding radio card, and
+   * handleInputChange drops input while the option is unselected — leaving an orphaned draft
+   * visible in the field. Typing always requires focus first, so selecting the option on focus
+   * (bubbled from any descendant input) guarantees keystrokes are never silently discarded.
+   */
+  const handleCustomInputFocus = () => {
+    if (selectedSampleOption !== PowerCheckOption.ENTER_OWN) {
+      handleOptionChange(PowerCheckOption.ENTER_OWN);
+    }
+  };
+
   return (
     <Flex direction="column" gap="2" justify="center" width="100%">
       <RadioCards.Root columns="1" value={selectedSampleOption} onValueChange={handleOptionChange}>
@@ -315,7 +327,13 @@ export function PowerCheckSampleSizeSelector({
             </Flex>
           </RadioCards.Item>
           <RadioCards.Item value={PowerCheckOption.ENTER_OWN} disabled={allSamples === undefined || allSamples === 0}>
-            <Flex align="center" direction="column" gap="2" style={{ pointerEvents: 'auto' }}>
+            <Flex
+              align="center"
+              direction="column"
+              gap="2"
+              style={{ pointerEvents: 'auto' }}
+              onFocus={handleCustomInputFocus}
+            >
               <Text size="2">Use a custom sample size:</Text>
               {showClusteredCustomInput ? (
                 <Flex direction="column" gap="2" align="center">
