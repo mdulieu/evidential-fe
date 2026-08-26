@@ -199,24 +199,32 @@ export function PowerCheckSampleSizeSelector({
           estimateMde(option, allSamples, isClustered ? maxClusters : undefined);
         }
         break;
-      case PowerCheckOption.ENTER_OWN:
+      case PowerCheckOption.ENTER_OWN: {
+        // After a power check, desiredNClusters is prefilled with the required cluster count while
+        // desiredN stays unset, so derive the participant count from the displayed clusters —
+        // otherwise selecting this option shows a cluster count with no estimate.
+        const ownDesiredN =
+          desiredN === undefined && isClustered && desiredNClusters !== undefined && avgClusterSize !== undefined
+            ? estimateParticipantNFromClusters(desiredNClusters, avgClusterSize)
+            : desiredN;
         // Switching away from ENTER_OWN will either keep desiredN set to allSamples or change
         // it away, so switching back to ENTER_OWN will not reuse a stale custom response with the
         // following restricted reuse check.
         useCachedResponse =
           mdePowerCheckResponse !== undefined &&
-          desiredN === allSamples &&
+          ownDesiredN === allSamples &&
           (!isClustered || desiredNClusters === maxClusters);
         onOptionChange({
           sampleSizeOption: option,
-          desiredN: desiredN,
+          desiredN: ownDesiredN,
           desiredNClusters: isClustered ? desiredNClusters : undefined,
           response: useCachedResponse ? mdePowerCheckResponse : undefined,
         });
-        if (!useCachedResponse && desiredN !== undefined) {
-          estimateMde(option, desiredN, isClustered ? desiredNClusters : undefined);
+        if (!useCachedResponse && ownDesiredN !== undefined) {
+          estimateMde(option, ownDesiredN, isClustered ? desiredNClusters : undefined);
         }
         break;
+      }
     }
   };
 
